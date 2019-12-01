@@ -1,0 +1,6 @@
+name: Questionare Module
+description: A simple module to alter site information form and provide rest api
+package: Custom
+type: module
+version: 8.x-1.0
+core: 8.x

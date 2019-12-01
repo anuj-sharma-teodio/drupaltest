@@ -1,0 +1,56 @@
+<?php
+/**
+ * @File
+ * Qestionnaire custom module for Drupal 8.
+ * @author Anuj Sharma
+ */
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implementing hook_form_alter().
+ */
+function questionnaire_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id){
+
+  if ($form_id == 'system_site_information_settings') {
+
+    $config = \Drupal::service('config.factory')->getEditable('system.site');
+    $custom_config = \Drupal::config('questionnaire.settings'); // getting the custom default settings from the questionnaire.settings.yml file 
+
+    $form['site_key'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Site Key Details'),
+    );
+
+    $form['site_key']['site_api_key'] = array(
+      '#title' => t('Site API Key'),
+      '#type' => 'textfield',
+      '#description' => 'Enter Site Api key',
+      '#default_value' => !empty($config->get('siteapikey')) ? $config->get('siteapikey') : $custom_config->get('questionnaire.siteapikey'),
+      '#required' => TRUE,
+      );
+
+    if (!empty($config->get('siteapikey'))) {
+      $form['actions']['submit']['#value'] = t('Update Configuration');
+    }
+    
+    $form['actions']['submit']['#submit'][] = 'questionnaire_form_submit';
+  }
+}
+
+/**
+ * Custom submit handler.
+ */
+function questionnaire_form_submit(&$form, FormStateInterface $form_state) {
+
+  $site_api_key = $form_state->getValue('site_api_key');
+  $config = \Drupal::service('config.factory')->getEditable('system.site');
+
+  if (empty($config->get('siteapikey'))) {
+   drupal_set_message('Site API Key has been saved with the value: ' .$site_api_key); // when the Api key value is saved for the first time
+  }
+  else {
+   drupal_set_message('Site API Key has been updated with the value: ' .$site_api_key); // when the Api key value is updated later once it was saved
+  }
+
+  $config->set('siteapikey', $site_api_key)->save(); 
+}
